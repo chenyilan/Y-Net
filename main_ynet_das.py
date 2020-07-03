@@ -102,7 +102,7 @@ while True:
 
                 outputs = model(rawdata,bfimg)
                 loss = criterion(outputs, reimage)
-                losses.update(loss.item(), rawdata.size(0))
+
 
                 # Backward and optimize
                 optimizer.zero_grad()
