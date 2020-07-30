@@ -208,6 +208,10 @@ class YNet(nn.Module):
         self.down3 = DownConv(64,128)
         self.down4 = DownConv(128,256)
         self.bottom = Bottom(256,256)
+        self.tdown1 = DownConv(1,32)
+        self.tdown2 = DownConv(32,64)
+        self.tdown3 = DownConv(64,128)
+        self.tdown4 = DownConv(128,256)
         self.bbottom = ImBottom(256,256)
         self.combine = ImBottom(512,256)
         self.up1 = UpConv(256,128,merge_mode=self.merge_mode)
@@ -241,10 +245,10 @@ class YNet(nn.Module):
         before_pool2_resize = F.upsample(before_pool2, (64, 64), mode='bilinear')
         before_pool1_resize = F.upsample(before_pool1, (128, 128), mode='bilinear')
          #encoder2: bf
-        bx1,bxbefore_pool1= self.down1(bfimg)
-        bx2,bxbefore_pool2= self.down2(bx1)
-        bx3,bxbefore_pool3= self.down3(bx2)
-        bx4,bxbefore_pool4= self.down4(bx3)
+        bx1,bxbefore_pool1= self.tdown1(bfimg)
+        bx2,bxbefore_pool2= self.tdown2(bx1)
+        bx3,bxbefore_pool3= self.tdown3(bx2)
+        bx4,bxbefore_pool4= self.tdown4(bx3)
         bx5 = self.bbottom(bx4) # 8, 8, 256
         if self.merge_mode == 'add':
             out = x5 + bx5
@@ -270,6 +274,7 @@ if __name__ == "__main__":
     x = Variable(torch.FloatTensor(np.random.random((1, 1, 2560, 128))),requires_grad = True).to(device)
     img = Variable(torch.FloatTensor(np.random.random((1, 1, 128, 128))), requires_grad=True).to(device)
     model = YNet(in_channels=1,merge_mode='concat').to(device)
+    total_parameters = sum(param.numel() for param in model.parameters())
     out = model(x,img)
     out = F.upsample(out, (128, 128), mode='bilinear')
     loss = torch.mean(out)
